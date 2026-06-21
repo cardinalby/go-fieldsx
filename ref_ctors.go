@@ -31,7 +31,10 @@ func ByName(structType reflect.Type, fieldName string) (Ref, error) {
 // Returns an error if:
 // - StructType type param is not a struct
 // - `fieldName` is not a valid field name of the struct type
-func ByNameFor[StructType any](fieldName string) (RefFor[StructType], error) {
+func ByNameFor[StructType any](
+	fieldName string,
+	options ...RefByNameOptionFor[StructType],
+) (RefFor[StructType], error) {
 	structType := reflect.TypeFor[StructType]()
 	i, _, err := newIndexByName(structType, fieldName)
 	if err != nil {
@@ -45,7 +48,7 @@ func ByNameFor[StructType any](fieldName string) (RefFor[StructType], error) {
 // - structType.Kind is not struct
 // - fieldName is not a valid field name of structType
 // - found field type is not identical to FieldType type param
-func ByNameTo[FieldType any](structType reflect.Type, fieldName string) (RefTo[FieldType], error) {
+func ByNameTo[FieldType any](structType reflect.Type, fieldName string, options ...RefByNameOption) (RefTo[FieldType], error) {
 	i, actualFieldType, err := newIndexByName(structType, fieldName)
 	if err != nil {
 		return nil, err
@@ -61,7 +64,10 @@ func ByNameTo[FieldType any](structType reflect.Type, fieldName string) (RefTo[F
 // - StructType type param is not a struct
 // - `fieldName` is not a valid field name of the struct type
 // - found field type is not identical to FieldType type param
-func ByNameForTo[StructType any, FieldType any](fieldName string) (RefForTo[StructType, FieldType], error) {
+func ByNameForTo[StructType any, FieldType any](
+	fieldName string,
+	options ...RefByNameOptionFor[StructType],
+) (RefForTo[StructType, FieldType], error) {
 	structType := reflect.TypeFor[StructType]()
 	i, actualFieldType, err := newIndexByName(structType, fieldName)
 	if err != nil {
@@ -141,7 +147,7 @@ func ByIndexForTo[StructType any, FieldType any](indexParts ...int) (RefForTo[St
 // - `probeStructPtr` is not a pointer to struct
 // - `probeFieldPtr` is not a pointer to field of the struct pointed by `probeStructPtr`
 // - pointer is ambiguous (e.g. due to field embedding or zero-length fields)
-func ByPtr(probeStructPtr any, probeFieldPtr any) (Ref, error) {
+func ByPtr(probeStructPtr any, probeFieldPtr any, options ...RefByPtrOption) (Ref, error) {
 	i, structType, _, err := newIndexByPtr(probeStructPtr, probeFieldPtr)
 	if err != nil {
 		return nil, err
@@ -154,7 +160,11 @@ func ByPtr(probeStructPtr any, probeFieldPtr any) (Ref, error) {
 // - StructType.Kind is not struct
 // - `probeFieldPtr` is not a pointer to field of the struct pointed by `probeStructPtr`
 // - pointer is ambiguous (e.g. due to field embedding or zero-length fields)
-func ByPtrFor[StructType any](probeStructPtr *StructType, probeFieldPtr any) (r RefFor[StructType], err error) {
+func ByPtrFor[StructType any](
+	probeStructPtr *StructType,
+	probeFieldPtr any,
+	options ...RefByPtrOptionFor[StructType],
+) (r RefFor[StructType], err error) {
 	i, _, _, err := newIndexByPtr(probeStructPtr, probeFieldPtr)
 	if err != nil {
 		return nil, err
@@ -168,7 +178,11 @@ func ByPtrFor[StructType any](probeStructPtr *StructType, probeFieldPtr any) (r 
 // - `probeStructPtr` is not a pointer to struct
 // - `probeFieldPtr` is not a pointer to field of the struct pointed by `probeStructPtr`
 // - pointer is ambiguous (e.g. due to field embedding or zero-length fields)
-func ByPtrTo[FieldType any](probeStructPtr any, probeFieldPtr *FieldType) (RefTo[FieldType], error) {
+func ByPtrTo[FieldType any](
+	probeStructPtr any,
+	probeFieldPtr *FieldType,
+	options ...RefByPtrOption,
+) (RefTo[FieldType], error) {
 	i, structType, _, err := newIndexByPtr(probeStructPtr, probeFieldPtr)
 	if err != nil {
 		return nil, err
@@ -184,6 +198,7 @@ func ByPtrTo[FieldType any](probeStructPtr any, probeFieldPtr *FieldType) (RefTo
 func ByPtrForTo[StructType any, FieldType any](
 	probeStructPtr *StructType,
 	probeFieldPtr *FieldType,
+	options ...RefByPtrOptionFor[StructType],
 ) (r RefForTo[StructType, FieldType], err error) {
 	i, structType, _, err := newIndexByPtr(probeStructPtr, probeFieldPtr)
 	if err != nil {
