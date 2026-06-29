@@ -49,6 +49,23 @@ nameRef, err := fieldx.ByIndexFor[User](0)
 ageRef, err := fieldx.ByIndexFor[User](1)
 ```
 
+### All fields of a struct
+
+Iterate a `Ref` for every top-level field, in declaration order (the `i`-th `Ref` points to the
+`i`-th field). Embedded structs are not expanded — an embedded field yields a single `Ref`. The
+non-struct error is returned eagerly, so the `iter.Seq` itself is always safe to range over.
+
+```go
+seq, err := fieldx.RefsFor[User]() // iter.Seq[RefFor[User]]
+if err != nil { /* User is not a struct */ }
+for ref := range seq {
+    // ...
+}
+
+// or, from a reflect.Type:
+seq, err := fieldx.Refs(reflect.TypeFor[User]()) // iter.Seq[Ref]
+```
+
 ## Field `Ref` interfaces
 
 | Interface                                                                  | Type parameters     | Description                                                                             |

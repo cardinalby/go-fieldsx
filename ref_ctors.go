@@ -2,6 +2,7 @@ package fieldsx
 
 import (
 	"fmt"
+	"iter"
 	"reflect"
 )
 
@@ -174,6 +175,45 @@ func ByPtrTo[FieldT any](probeStructPtr any, probeFieldPtr *FieldT) (RefTo[Field
 		return nil, err
 	}
 	return newRefTo[FieldT](structType, i), nil
+}
+
+// Refs returns an iterator over a Ref for each top-level field of the given struct type, in
+// declaration order: the i-th yielded Ref points to the i-th field (same order as
+// reflect.Type.Field(i)). Promoted fields of embedded structs are NOT expanded; an embedded struct
+// yields a single Ref to the embedded field itself.
+// The non-struct check is performed eagerly: an error is returned (with a nil iterator) if
+// `structType` is not a struct, so the iterator itself never needs to be checked for validity.
+func Refs(structType reflect.Type) (iter.Seq[Ref], error) {
+	if structType.Kind() != reflect.Struct {
+		return nil, newNotAStructError(structType)
+	}
+	return func(yield func(Ref) bool) {
+		for i := 0; i < structType.NumField(); i++ {
+			if !yield(newRef(structType, newIndexUnsafe(i))) {
+				return
+			}
+		}
+	}, nil
+}
+
+// RefsFor returns an iterator over a RefFor for each top-level field of the StructT struct type, in
+// declaration order: the i-th yielded Ref points to the i-th field (same order as
+// reflect.Type.Field(i)). Promoted fields of embedded structs are NOT expanded; an embedded struct
+// yields a single Ref to the embedded field itself.
+// The non-struct check is performed eagerly: an error is returned (with a nil iterator) if StructT
+// is not a struct, so the iterator itself never needs to be checked for validity.
+func RefsFor[StructT any]() (iter.Seq[RefFor[StructT]], error) {
+	structType := reflect.TypeFor[StructT]()
+	if structType.Kind() != reflect.Struct {
+		return nil, newNotAStructError(structType)
+	}
+	return func(yield func(RefFor[StructT]) bool) {
+		for i := 0; i < structType.NumField(); i++ {
+			if !yield(newRefFor[StructT](structType, newIndexUnsafe(i))) {
+				return
+			}
+		}
+	}, nil
 }
 
 // ByPtrForTo creates RefForTo to the field identified by `probeFieldPtr` pointer in probe `probeStructPtr` struct pointer.
